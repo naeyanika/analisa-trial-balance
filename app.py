@@ -253,15 +253,15 @@ if uploaded_file is not None:
                 
                 if not expense_significant.empty:
                     top_expense = expense_significant.iloc[0]
-                    summary_report.append(f"1. Perubahan biaya terbesar terjadi pada kategori '{top_expense['Kategori']}' pada periode {top_expense['Periode']} dengan perubahan {top_expense['Perubahan (%)]:.2f}%.")
+                    summary_report.append(f"1. Perubahan biaya terbesar terjadi pada kategori '{top_expense['Kategori']}' pada periode {top_expense['Periode']} dengan perubahan {top_expense['Perubahan (%)']}%.")
                 
                 if not pinjaman_significant.empty:
                     top_pinjaman = pinjaman_significant.iloc[0]
-                    summary_report.append(f"2. Pinjaman mengalami perubahan signifikan pada kategori '{top_pinjaman['Kategori']}' pada periode {top_pinjaman['Periode']} dengan perubahan {top_pinjaman['Perubahan (%)]:.2f}%.")
+                    summary_report.append(f"2. Pinjaman mengalami perubahan signifikan pada kategori '{top_pinjaman['Kategori']}' pada periode {top_pinjaman['Periode']} dengan perubahan {top_pinjaman['Perubahan (%)']}%.")
                 
                 if not simpanan_significant.empty:
                     top_simpanan = simpanan_significant.iloc[0]
-                    summary_report.append(f"3. Simpanan mengalami perubahan signifikan pada kategori '{top_simpanan['Kategori']}' pada periode {top_simpanan['Periode']} dengan perubahan {top_simpanan['Perubahan (%)]:.2f}%.")
+                    summary_report.append(f"3. Simpanan mengalami perubahan signifikan pada kategori '{top_simpanan['Kategori']}' pada periode {top_simpanan['Periode']} dengan perubahan {top_simpanan['Perubahan (%)']}%.")
                 
                 st.markdown("#### Temuan Utama:")
                 for finding in summary_report:
