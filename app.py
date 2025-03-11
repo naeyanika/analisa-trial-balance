@@ -391,7 +391,12 @@ Rekomendasi:
                                 colors=sns.color_palette("Set3", len(pinjaman_composition)),
                                 labeldistance=1.1
                                 )
+                            
     
+                        # Tambahkan legenda
+                            ax.legend(wedges, pinjaman_composition['Keterangan'], title="Keterangan", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+                            ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+
                             st.pyplot(fig)
 
                         # Write significant changes
