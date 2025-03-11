@@ -45,6 +45,8 @@ if uploaded_file is not None:
     try:
         # Read the Excel file
         df = pd.read_excel(uploaded_file)
+        st.write("Data berhasil diupload dan dibaca:")
+        st.write(df.head())
         
         # Check if the required columns exist
         required_columns = ["No Akun", "Keterangan"]
@@ -248,7 +250,7 @@ if uploaded_file is not None:
                             if pd.notna(row[col]) and abs(row[col]) > threshold:
                                 period = col.replace("Perubahan ", "").replace(" (%)", "")
                                 significant_changes.append({
-                                    "Kategori": row["Keterangan"],
+                                    "Kategori": row["Kategori"],
                                     "No Akun": row["No Akun"],
                                     "Periode": period,
                                     "Perubahan (%)": row[col]
@@ -386,6 +388,10 @@ Rekomendasi:
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     )
                 
+    except pd.errors.EmptyDataError:
+        st.error("File Excel kosong atau tidak memiliki data yang dapat diproses.")
+    except pd.errors.ParserError:
+        st.error("Terjadi kesalahan dalam memparsing file Excel. Pastikan format file benar.")
     except Exception as e:
         st.error(f"Error reading file: {e}")
 else:
