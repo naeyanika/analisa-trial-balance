@@ -50,15 +50,13 @@ if uploaded_file is not None:
         # Read the Excel file
         df = pd.read_excel(uploaded_file)
         
-        # Log the DataFrame structure
-        st.write("Data berhasil diupload dan dibaca:")
-        st.write(df.head())
-        
+        # Convert all column names to strings to avoid mixed type issues
+        df.columns = df.columns.astype(str)
+
         # Check if the required columns exist
         required_columns = ["No Akun", "Keterangan"]
         if not all(col in df.columns for col in required_columns):
             st.error("File Excel harus memiliki kolom 'No Akun' dan 'Keterangan'")
-            logging.error("Missing required columns in the uploaded file.")
         else:
             # Display the raw data
             st.markdown('<p class="sub-header">Data Mentah</p>', unsafe_allow_html=True)
@@ -69,7 +67,6 @@ if uploaded_file is not None:
             
             if len(month_columns) < 2:
                 st.error("Data harus memiliki minimal 2 bulan untuk melakukan analisis perubahan")
-                logging.error("Not enough month columns for analysis.")
             else:
                 # Convert numeric columns to numeric
                 for col in month_columns:
@@ -382,8 +379,8 @@ Rekomendasi:
                     )
                 
     except Exception as e:
-        st.error(f"Error reading file: {e}")
         logging.error(f"Error reading file: {e}")
+        st.error(f"Error reading file: {e}")
 else:
     st.info("Silakan upload file Excel untuk memulai analisis")
 
