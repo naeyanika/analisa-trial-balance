@@ -146,6 +146,7 @@ if uploaded_file is not None:
                 simpanan_df = df[simpanan_filter].copy()
 
                 
+                
                 # Show expense analysis
                 if not expense_df.empty:
                     st.markdown("### Analisis Biaya")
@@ -155,6 +156,9 @@ if uploaded_file is not None:
                     pct_changes = changes_df[changes_df['No Akun'].isin(expense_df['No Akun'])]
                     pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
                     styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
+
+                    df['Perubahan (%)'] = df['Perubahan (%)'].str.replace('%', '').astype(float)
+
                     
                     # Display both tables
                     st.write("Perubahan Persentase:")
