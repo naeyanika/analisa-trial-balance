@@ -8,7 +8,6 @@ import logging
 
 # Set up logging
 logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger()
 
 # Set page configuration
 st.set_page_config(page_title="Financial Data Analysis", layout="wide")
@@ -50,6 +49,8 @@ if uploaded_file is not None:
     try:
         # Read the Excel file
         df = pd.read_excel(uploaded_file)
+        
+        # Log the DataFrame structure
         st.write("Data berhasil diupload dan dibaca:")
         st.write(df.head())
         
@@ -57,7 +58,7 @@ if uploaded_file is not None:
         required_columns = ["No Akun", "Keterangan"]
         if not all(col in df.columns for col in required_columns):
             st.error("File Excel harus memiliki kolom 'No Akun' dan 'Keterangan'")
-            logger.error("Missing required columns in the uploaded file.")
+            logging.error("Missing required columns in the uploaded file.")
         else:
             # Display the raw data
             st.markdown('<p class="sub-header">Data Mentah</p>', unsafe_allow_html=True)
@@ -68,7 +69,7 @@ if uploaded_file is not None:
             
             if len(month_columns) < 2:
                 st.error("Data harus memiliki minimal 2 bulan untuk melakukan analisis perubahan")
-                logger.error("Not enough month columns for analysis.")
+                logging.error("Not enough month columns for analysis.")
             else:
                 # Convert numeric columns to numeric
                 for col in month_columns:
@@ -382,7 +383,7 @@ Rekomendasi:
                 
     except Exception as e:
         st.error(f"Error reading file: {e}")
-        logger.error(f"Error reading file: {e}")
+        logging.error(f"Error reading file: {e}")
 else:
     st.info("Silakan upload file Excel untuk memulai analisis")
 
