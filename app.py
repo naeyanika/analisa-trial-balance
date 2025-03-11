@@ -198,65 +198,7 @@ if uploaded_file is not None:
                     st.write("Perubahan Nominal (Rp):")
                     st.dataframe(styled_pinjaman_changes)
                     
-                    # Grouped bar chart for pinjaman
-                    st.markdown("#### Grouped Bar Chart Perubahan Pinjaman")
-                    pinjaman_values = pinjaman_df[month_columns].sum()
-                    pinjaman_labels = pinjaman_df['Keterangan'].unique()
                     
-                    fig, ax = plt.subplots(figsize=(12, 6))
-                    width = 0.1
-                    x = np.arange(len(month_columns))
-                    
-                    for i, label in enumerate(pinjaman_labels):
-                        category_data = pinjaman_df[pinjaman_df['Keterangan'] == label]
-                        category_values = category_data[month_columns].sum()
-                        ax.bar(x + i * width, category_values, width, label=label)
-                    
-                    ax.set_xlabel('Bulan')
-                    ax.set_ylabel('Nilai (Rp)')
-                    ax.set_title('Grouped Bar Chart Perubahan Pinjaman')
-                    ax.set_xticks(x + width / 2)
-                    ax.set_xticklabels(month_columns)
-                    ax.legend()
-                    st.pyplot(fig)
-                    
-                    # Pie chart for pinjaman
-                    st.markdown("#### Pie Chart Perubahan Pinjaman")
-                    pinjaman_total = pinjaman_df[month_columns].sum().sum()
-                    pinjaman_data = pinjaman_df[month_columns].sum().values
-                    pinjaman_labels = month_columns
-                    
-                    def func(pct, allvals):
-                        absolute = int(np.round(pct/100.*np.sum(allvals)))
-                        return f"{pct:.1f}%\n({absolute:d} g)"
-                    
-                    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(aspect="equal"))
-                    wedges, texts, autotexts = ax.pie(pinjaman_data, autopct=lambda pct: func(pct, pinjaman_data),
-                                                      textprops=dict(color="w"))
-                    ax.legend(wedges, pinjaman_labels,
-                              title="Bulan",
-                              loc="center left",
-                              bbox_to_anchor=(1, 0, 0.5, 1))
-                    plt.setp(autotexts, size=8, weight="bold")
-                    ax.set_title("Pie Chart Perubahan Pinjaman")
-                    st.pyplot(fig)
-                    
-                    # Donut chart for pinjaman
-                    st.markdown("#### Donut Chart Perubahan Pinjaman")
-                    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(aspect="equal"))
-                    wedges, texts, autotexts = ax.pie(pinjaman_data, autopct=lambda pct: func(pct, pinjaman_data),
-                                                      textprops=dict(color="w"))
-                    ax.legend(wedges, pinjaman_labels,
-                              title="Bulan",
-                              loc="center left",
-                              bbox_to_anchor=(1, 0, 0.5, 1))
-                    plt.setp(autotexts, size=8, weight="bold")
-                    centre_circle = plt.Circle((0, 0), 0.70, fc='white')
-                    fig = plt.gcf()
-                    fig.gca().add_artist(centre_circle)
-                    ax.set_title("Donut Chart Perubahan Pinjaman")
-                    st.pyplot(fig)
-                
                 # Show simpanan analysis
                 if not simpanan_df.empty:
                     st.markdown("### Analisis Simpanan")
