@@ -4,6 +4,11 @@ import numpy as np
 import io
 import matplotlib.pyplot as plt
 import seaborn as sns
+import logging
+
+# Set up logging
+logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger()
 
 # Set page configuration
 st.set_page_config(page_title="Financial Data Analysis", layout="wide")
@@ -45,11 +50,14 @@ if uploaded_file is not None:
     try:
         # Read the Excel file
         df = pd.read_excel(uploaded_file)
+        st.write("Data berhasil diupload dan dibaca:")
+        st.write(df.head())
         
         # Check if the required columns exist
         required_columns = ["No Akun", "Keterangan"]
         if not all(col in df.columns for col in required_columns):
             st.error("File Excel harus memiliki kolom 'No Akun' dan 'Keterangan'")
+            logger.error("Missing required columns in the uploaded file.")
         else:
             # Display the raw data
             st.markdown('<p class="sub-header">Data Mentah</p>', unsafe_allow_html=True)
@@ -60,6 +68,7 @@ if uploaded_file is not None:
             
             if len(month_columns) < 2:
                 st.error("Data harus memiliki minimal 2 bulan untuk melakukan analisis perubahan")
+                logger.error("Not enough month columns for analysis.")
             else:
                 # Convert numeric columns to numeric
                 for col in month_columns:
@@ -82,11 +91,11 @@ if uploaded_file is not None:
                     current_month = month_columns[i]
                     previous_month = month_columns[i-1]
     
-                    # Percentage change
+                    # Format for percentage
                     col_name = f"Perubahan {previous_month} ke {current_month} (%)"
                     changes_df[col_name] = df.apply(lambda row: calculate_change(row, current_month, previous_month), axis=1)
     
-                    # Absolute change
+                    # Format for absolute
                     col_name_abs = f"Perubahan {previous_month} ke {current_month} (Rp)"
                     absolute_changes_df[col_name_abs] = df[current_month] - df[previous_month]
                 
@@ -136,11 +145,10 @@ if uploaded_file is not None:
                 expense_filter = df['Keterangan'].apply(lambda x: any(category.lower() in str(x).lower() for category in expense_categories))
                 expense_df = df[expense_filter].copy()
                 
-                # Filter pinjaman
+                # Filter pinjaman and simpanan
                 pinjaman_filter = df['Keterangan'].apply(lambda x: str(x).lower().startswith('pinjaman'))
                 pinjaman_df = df[pinjaman_filter].copy()
                 
-                # Filter simpanan
                 simpanan_filter = df['Keterangan'].apply(lambda x: str(x).lower().startswith('simpanan'))
                 simpanan_df = df[simpanan_filter].copy()
 
@@ -374,6 +382,7 @@ Rekomendasi:
                 
     except Exception as e:
         st.error(f"Error reading file: {e}")
+        logger.error(f"Error reading file: {e}")
 else:
     st.info("Silakan upload file Excel untuk memulai analisis")
 
