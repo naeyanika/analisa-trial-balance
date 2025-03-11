@@ -350,7 +350,55 @@ Rekomendasi:
                             changes_df[changes_df['No Akun'].isin(simpanan_df['No Akun'])].to_excel(
                                 writer, sheet_name='Perubahan Simpanan (%)', index=False
                             )
-                        
+
+                        # Show pinjaman analysis
+                        if not pinjaman_df.empty:
+                            st.markdown("### Analisis Pinjaman")
+                            styled_pinjaman_changes = absolute_changes_df[absolute_changes_df['No Akun'].isin(pinjaman_df['No Akun'])]
+    
+                            # Apply styling based on percentage changes
+                            pct_changes = changes_df[changes_df['No Akun'].isin(pinjaman_df['No Akun'])]
+                            pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
+                                styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
+    
+                                # Display both tables
+                            st.write("Perubahan Persentase:")
+                            st.dataframe(styled_pct_changes)
+    
+                            st.write("Perubahan Nominal (Rp):")
+                            st.dataframe(styled_pinjaman_changes)
+
+                            # Komposisi Pinjaman
+                            st.markdown('<p class="sub-header">Komposisi Pinjaman</p>', unsafe_allow_html=True)
+    
+                            # Filter pinjaman untuk bulan dan tahun terakhir
+                            last_month = month_columns[-1]
+                            pinjaman_last_month = pinjaman_df[last_month].dropna()
+    
+                            # Hitung total nominal dan persentase komposisi
+                            total_pinjaman = pinjaman_last_month.sum()
+                            pinjaman_composition = pinjaman_last_month.groupby(pinjaman_df['Keterangan']).sum().reset_index()
+                            pinjaman_composition['Persentase (%)'] = (pinjaman_composition[last_month] / total_pinjaman) * 100
+    
+                            # Tampilkan tabel komposisi pinjaman
+                            st.markdown("#### Komposisi Pinjaman Bulan Terakhir")
+                            st.dataframe(pinjaman_composition)
+    
+                            # Buat pie chart
+                            fig, ax = plt.subplots(figsize=(8, 8))
+                            wedges, texts, autotexts = ax.pie(
+                                pinjaman_composition[last_month], 
+                                labels=pinjaman_composition['Persentase (%)'].apply(lambda x: f"{x:.2f}%"), 
+                                autopct='%1.1f%%', 
+                                startangle=90, 
+                                colors=sns.color_palette("Set3", len(pinjaman_composition))
+                                )
+    
+                            ax.legend(wedges, pinjaman_composition['Keterangan'], title="Keterangan", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+                            ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    
+                            st.pyplot(fig)
+
                         # Write significant changes
                         pd.concat([
                             expense_significant, 
