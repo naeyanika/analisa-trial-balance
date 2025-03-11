@@ -197,6 +197,41 @@ if uploaded_file is not None:
                     
                     st.write("Perubahan Nominal (Rp):")
                     st.dataframe(styled_pinjaman_changes)
+                    
+                    # Grouped bar chart for pinjaman
+                    st.markdown("#### Grouped Bar Chart Perubahan Pinjaman")
+                    pinjaman_values = pinjaman_df[month_columns].values
+                    pinjaman_labels = pinjaman_df['Keterangan'].values
+                    x = np.arange(len(month_columns))
+                    width = 0.15
+                    
+                    fig, ax = plt.subplots(figsize=(12, 6))
+                    for i, label in enumerate(pinjaman_labels):
+                        ax.bar(x + i * width, pinjaman_values[i], width, label=label)
+                    
+                    ax.set_xlabel('Bulan')
+                    ax.set_ylabel('Nilai (Rp)')
+                    ax.set_title('Grouped Bar Chart Perubahan Pinjaman')
+                    ax.set_xticks(x + width * (len(pinjaman_labels) - 1) / 2)
+                    ax.set_xticklabels(month_columns)
+                    ax.legend()
+                    plt.xticks(rotation=45)
+                    st.pyplot(fig)
+                    
+                    # Pie chart for pinjaman
+                    st.markdown("#### Pie Chart Perubahan Pinjaman")
+                    pinjaman_total_changes = pinjaman_df[month_columns].sum()
+                    fig, ax = plt.subplots(figsize=(8, 8))
+                    ax.pie(pinjaman_total_changes, labels=month_columns, autopct='%1.1f%%', startangle=90)
+                    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+                    st.pyplot(fig)
+                    
+                    # Donut chart for pinjaman
+                    st.markdown("#### Donut Chart Perubahan Pinjaman")
+                    fig, ax = plt.subplots(figsize=(8, 8))
+                    ax.pie(pinjaman_total_changes, labels=month_columns, autopct='%1.1f%%', startangle=90, wedgeprops=dict(width=0.3))
+                    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+                    st.pyplot(fig)
                 
                 # Show simpanan analysis
                 if not simpanan_df.empty:
