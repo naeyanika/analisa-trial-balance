@@ -109,7 +109,7 @@ if uploaded_file is not None:
                 st.markdown('<p class="sub-header">Analisis Perubahan Bulanan</p>', unsafe_allow_html=True)
                 
                 # Filter expense categories
-                expense_categories = [
+                expense_keywords = [
                     "ATK", "Foto Copy", "Cetakan", 
                     "Telephone", 
                     "Komputer/IT", 
@@ -135,10 +135,10 @@ if uploaded_file is not None:
                     "Kebersihan"
                 ]
                 
-                expense_filter = df['Keterangan'].apply(lambda x: any(category.lower() in str(x).lower() for category in expense_categories))
+                expense_filter = df['Keterangan'].apply(lambda x: any(keyword.lower() in str(x).lower() for keyword in expense_keywords))
                 expense_df = df[expense_filter].copy()
                 
-                # Ubah filter pinjaman dan simpanan untuk hanya mencari kata depan, bukan kata yang mengandung
+                # Filter pinjaman rows
                 pinjaman_filter = df['Keterangan'].apply(lambda x: str(x).lower().startswith('pinjaman'))
                 pinjaman_df = df[pinjaman_filter].copy()
                 
@@ -237,7 +237,7 @@ if uploaded_file is not None:
                             if pd.notna(row[col]) and abs(row[col]) > threshold:
                                 period = col.replace("Perubahan ", "").replace(" (%)", "")
                                 significant_changes.append({
-                                    "Kategori": row["Kategori"],
+                                    "Keterangan": row["Keterangan"],
                                     "No Akun": row["No Akun"],
                                     "Periode": period,
                                     "Perubahan (%)": row[col]
@@ -257,15 +257,15 @@ if uploaded_file is not None:
                     top_expenses = expense_significant.head(2)  # Ambil 2 perubahan biaya teratas
                     for i, expense in enumerate(top_expenses.iterrows()):
                         _, expense_row = expense
-                        summary_report.append(f"{i+1}. Perubahan biaya terbesar terjadi pada kategori '{expense_row['Kategori']}' pada periode {expense_row['Periode']} dengan perubahan {expense_row['Perubahan (%)']}%.")
+                        summary_report.append(f"{i+1}. Perubahan biaya terbesar terjadi pada kategori '{expense_row['Keterangan']}' pada periode {expense_row['Periode']} dengan perubahan {expense_row['Perubahan (%)']}%.")
 
                 if not pinjaman_significant.empty:
                     top_pinjaman = pinjaman_significant.iloc[0]
-                    summary_report.append(f"{len(summary_report)+1}. Pinjaman mengalami perubahan signifikan pada kategori '{top_pinjaman['Kategori']}' pada periode {top_pinjaman['Periode']} dengan perubahan {top_pinjaman['Perubahan (%)']}%.")
+                    summary_report.append(f"{len(summary_report)+1}. Pinjaman mengalami perubahan signifikan pada kategori '{top_pinjaman['Keterangan']}' pada periode {top_pinjaman['Periode']} dengan perubahan {top_pinjaman['Perubahan (%)']}%.")
 
                 if not simpanan_significant.empty:
                     top_simpanan = simpanan_significant.iloc[0]
-                    summary_report.append(f"{len(summary_report)+1}. Simpanan mengalami perubahan signifikan pada kategori '{top_simpanan['Kategori']}' pada periode {top_simpanan['Periode']} dengan perubahan {top_simpanan['Perubahan (%)']}%.")
+                    summary_report.append(f"{len(summary_report)+1}. Simpanan mengalami perubahan signifikan pada kategori '{top_simpanan['Keterangan']}' pada periode {top_simpanan['Periode']} dengan perubahan {top_simpanan['Perubahan (%)']}%.")
 
                 # Tambahkan poin tambahan untuk mencapai 5
                 for i in range(len(summary_report), 4):
@@ -379,8 +379,6 @@ Rekomendasi:
         st.error("File Excel kosong atau tidak memiliki data yang dapat diproses.")
     except pd.errors.ParserError:
         st.error("Terjadi kesalahan dalam memparsing file Excel. Pastikan format file benar.")
-    except KeyError as ke:
-        st.error(f"Kolom '{ke}' tidak ditemukan dalam DataFrame.")
     except Exception as e:
         st.error(f"Error reading file: {e}")
 else:
