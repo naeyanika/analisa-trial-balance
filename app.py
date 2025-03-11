@@ -4,6 +4,7 @@ import numpy as np
 import io
 import matplotlib.pyplot as plt
 import seaborn as sns
+from datetime import datetime
 
 # Set page configuration
 st.set_page_config(page_title="Financial Data Analysis", layout="wide")
@@ -190,38 +191,6 @@ if uploaded_file is not None:
                     pct_changes = changes_df[changes_df['No Akun'].isin(pinjaman_df['No Akun'])]
                     pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
                     styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
-
-                    # Grouped bar chart for loan trends
-                    st.markdown('<p class="sub-header">Tren Pinjaman</p>', unsafe_allow_html=True)
-                    
-                    # Prepare data for grouped bar chart
-                    loan_data = pinjaman_df.set_index('Keterangan')[month_columns].T
-                    loan_data.columns.name = 'Keterangan'
-                    loan_data.index.name = 'Bulan, Tahun'
-                    
-                    # Plot grouped bar chart
-                    x = np.arange(len(loan_data.index))
-                    width = 0.25
-                    multiplier = 0
-                    fig, ax = plt.subplots(layout='constrained', figsize=(12, 8))
-                    
-                    for category, values in loan_data.items():
-                        offset = width * multiplier
-                        rects = ax.bar(x + offset, values / 1e8, width, label=category)  # Convert to ratusan juta
-                        ax.bar_label(rects, padding=3)
-                        multiplier += 1
-                    
-                    # Add some text for labels, title and custom x-axis tick labels, etc.
-                    ax.set_ylabel('Nominal (ratusan juta Rp)')
-                    ax.set_title('Tren Pinjaman Bulanan')
-                    ax.set_xticks(x + width, loan_data.index)
-                    ax.legend(loc='upper left', ncols=3)
-                    ax.set_ylim(0, loan_data.max().max() / 1e8 + 1)
-                    
-                    plt.xticks(rotation=45)
-                    st.pyplot(fig)
-                    
-                    
                     
                     # Display both tables
                     st.write("Perubahan Persentase:")
@@ -230,6 +199,33 @@ if uploaded_file is not None:
                     st.write("Perubahan Nominal (Rp):")
                     st.dataframe(styled_pinjaman_changes)
                     
+                    # Grouped Bar Chart for Pinjaman Trends
+                    st.markdown('<p class="sub-header">Tren Pinjaman</p>', unsafe_allow_html=True)
+                    
+                    # Prepare data for plotting
+                    pinjaman_data = pinjaman_df.set_index('Keterangan').T
+                    pinjaman_data.index = pd.to_datetime(pinjaman_data.index, format='%b-%y').strftime('%B, %Y')
+                    
+                    # Plotting
+                    x = np.arange(len(pinjaman_data.index))
+                    width = 0.25
+                    multiplier = 0
+                    fig, ax = plt.subplots(figsize=(14, 8))
+                    
+                    for category in pinjaman_data.columns:
+                        offset = width * multiplier
+                        rects = ax.bar(x + offset, pinjaman_data[category], width, label=category)
+                        ax.bar_label(rects, padding=3, rotation=90)
+                        multiplier += 1
+                    
+                    # Add some text for labels, title and custom x-axis tick labels, etc.
+                    ax.set_ylabel('Nominal (Rp)')
+                    ax.set_title('Tren Pinjaman Bulanan')
+                    ax.set_xticks(x + width * (multiplier / 2 - 0.5), pinjaman_data.index, rotation=45, ha='right')
+                    ax.legend(loc='upper left', ncols=3)
+                    ax.set_ylim(0, pinjaman_data.max().max() * 1.1)
+                    
+                    st.pyplot(fig)
                     
                 # Show simpanan analysis
                 if not simpanan_df.empty:
@@ -287,7 +283,7 @@ if uploaded_file is not None:
                             if pd.notna(row[col]) and abs(row[col]) > threshold:
                                 period = col.replace("Perubahan ", "").replace(" (%)", "")
                                 significant_changes.append({
-                                    "Kategori": row["Keterangan"],
+                                    "Kategori": row["Kategori"],
                                     "No Akun": row["No Akun"],
                                     "Periode": period,
                                     "Perubahan (%)": row[col]
@@ -382,55 +378,7 @@ Rekomendasi:
                             changes_df[changes_df['No Akun'].isin(simpanan_df['No Akun'])].to_excel(
                                 writer, sheet_name='Perubahan Simpanan (%)', index=False
                             )
-
-                        # Show pinjaman analysis
-                        if not pinjaman_df.empty:
-                            st.markdown("### Analisis Pinjaman")
-                            styled_pinjaman_changes = absolute_changes_df[absolute_changes_df['No Akun'].isin(pinjaman_df['No Akun'])]
-    
-                            # Apply styling based on percentage changes
-                            pct_changes = changes_df[changes_df['No Akun'].isin(pinjaman_df['No Akun'])]
-                            pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
-                            styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
-
-                            # Komposisi Pinjaman
-                            st.markdown('<p class="sub-header">Komposisi Pinjaman</p>', unsafe_allow_html=True)
-    
-                            # Filter pinjaman untuk bulan dan tahun terakhir
-                            last_month = month_columns[-1]
-                            pinjaman_last_month = pinjaman_df[last_month].dropna()
-    
-                            # Hitung total nominal dan persentase komposisi
-                            total_pinjaman = pinjaman_last_month.sum()
-                            pinjaman_composition = pinjaman_last_month.groupby(pinjaman_df['Keterangan']).sum().reset_index()
-                            pinjaman_composition['Persentase (%)'] = (pinjaman_composition[last_month] / total_pinjaman) * 100
-    
-                            # Tampilkan tabel komposisi pinjaman
-                            st.markdown("#### Komposisi Pinjaman Bulan Terakhir")
-                            st.dataframe(pinjaman_composition)
-                            
-                            # Buat pie chart
-                            fig, ax = plt.subplots(figsize=(8, 8))
-
-                            # Tampilkan semua label di luar pie chart
-                            labels = pinjaman_composition['Persentase (%)'].apply(lambda x: f"{x:.1f}%")
-
-                            wedges, texts, autotexts = ax.pie(
-                                pinjaman_composition[last_month], 
-                                labels=labels, 
-                                autopct='%1.1f%%', 
-                                startangle=90, 
-                                colors=sns.color_palette("Set3", len(pinjaman_composition)),
-                                labeldistance=1.1
-                                )
-                            
-    
-                        # Tambahkan legenda
-                            ax.legend(wedges, pinjaman_composition['Keterangan'], title="Keterangan", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-                            ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-
-                            st.pyplot(fig)
-
+                        
                         # Write significant changes
                         pd.concat([
                             expense_significant, 
@@ -442,11 +390,9 @@ Rekomendasi:
                         workbook = writer.book
                         summary_sheet = workbook.add_worksheet('Ringkasan Analisis')
                         
-                        # Format the summary sheet
                         bold_format = workbook.add_format({'bold': False, 'font_size': 11})
                         normal_format = workbook.add_format({'font_size': 11})
                         
-                        # Write the report
                         summary_sheet.write(0, 0, "LAPORAN ANALISIS KEUANGAN", bold_format)
                         summary_sheet.write(2, 0, "Periode Analisis:", bold_format)
                         summary_sheet.write(2, 1, f"{month_columns[0]} s.d. {month_columns[-1]}", normal_format)
