@@ -379,6 +379,8 @@ Rekomendasi:
         st.error("File Excel kosong atau tidak memiliki data yang dapat diproses.")
     except pd.errors.ParserError:
         st.error("Terjadi kesalahan dalam memparsing file Excel. Pastikan format file benar.")
+    except KeyError as ke:
+        st.error(f"Kolom '{ke}' tidak ditemukan dalam DataFrame.")
     except Exception as e:
         st.error(f"Error reading file: {e}")
 else:
