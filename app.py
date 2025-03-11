@@ -199,34 +199,33 @@ if uploaded_file is not None:
                     st.write("Perubahan Nominal (Rp):")
                     st.dataframe(styled_pinjaman_changes)
                     
-                    # Grouped Bar Chart for Pinjaman
+                    # Create grouped bar chart for pinjaman trends
                     st.markdown('<p class="sub-header">Tren Pinjaman</p>', unsafe_allow_html=True)
                     
                     # Format month columns to "MMMM, YYYY"
                     formatted_month_columns = [datetime.strptime(col, "%b-%y").strftime("%B, %Y") for col in month_columns]
                     
                     # Prepare data for plotting
-                    pinjaman_values = pinjaman_df.set_index(['No Akun', 'Keterangan'])[month_columns].values.T
-                    pinjaman_labels = pinjaman_df['Keterangan'].unique()
-                    
-                    x = np.arange(len(formatted_month_columns))  # the label locations
-                    width = 0.25  # the width of the bars
+                    pinjaman_values = pinjaman_df[month_columns].values.T
+                    x = np.arange(len(pinjaman_df))
+                    width = 0.25
                     multiplier = 0
                     
                     fig, ax = plt.subplots(layout='constrained', figsize=(14, 8))
                     
-                    for i, label in enumerate(pinjaman_labels):
+                    for i, month in enumerate(formatted_month_columns):
                         offset = width * multiplier
-                        rects = ax.bar(x + offset, pinjaman_values[:, i], width, label=label)
-                        ax.bar_label(rects, padding=3)
+                        rects = ax.bar(x + offset, pinjaman_values[i], width, label=month)
+                        ax.bar_label(rects, padding=3, rotation=90)
                         multiplier += 1
                     
                     # Add some text for labels, title and custom x-axis tick labels, etc.
                     ax.set_ylabel('Nominal (Rp)')
                     ax.set_title('Tren Pinjaman Bulanan')
-                    ax.set_xticks(x + width * (len(pinjaman_labels) - 1) / 2, formatted_month_columns)
-                    ax.legend(loc='upper left', ncols=len(pinjaman_labels))
-                    ax.set_ylim(0, max(pinjaman_values.max()) * 1.1)
+                    ax.set_xticks(x + width * (len(formatted_month_columns) - 1) / 2, pinjaman_df['Keterangan'])
+                    ax.legend(loc='upper left', ncols=3)
+                    ax.set_ylim(0, max(pinjaman_values.flatten()) * 1.1)
+                    plt.xticks(rotation=45, ha='right')
                     
                     st.pyplot(fig)
                     
