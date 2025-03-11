@@ -190,6 +190,25 @@ if uploaded_file is not None:
                     pct_changes = changes_df[changes_df['No Akun'].isin(pinjaman_df['No Akun'])]
                     pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
                     styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
+
+                    # New section for loan trend
+                    st.markdown('<p class="sub-header">Tren Pinjaman</p>', unsafe_allow_html=True)
+                    
+                    # Prepare data for grouped bar chart
+                    loan_trend_df = pinjaman_df.melt(id_vars=["No Akun", "Keterangan"], var_name="Bulan, Tahun", value_name="Nominal")
+                    loan_trend_df['Nominal'] = loan_trend_df['Nominal'] / 1000000  # Convert to millions
+                    
+                    # Create grouped bar chart
+                    plt.figure(figsize=(14, 8))
+                    sns.barplot(data=loan_trend_df, x="Bulan, Tahun", y="Nominal", hue="Keterangan", palette="Set3")
+                    plt.title("Tren Pinjaman Bulanan")
+                    plt.xlabel("Bulan, Tahun")
+                    plt.ylabel("Nominal (jutaan Rp)")
+                    plt.xticks(rotation=45)
+                    plt.legend(title="Keterangan", loc="upper right", bbox_to_anchor=(1.2, 1))
+                    plt.tight_layout()
+                    st.pyplot(plt)
+                    
                     
                     # Display both tables
                     st.write("Perubahan Persentase:")
