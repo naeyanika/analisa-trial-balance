@@ -360,13 +360,6 @@ Rekomendasi:
                             pct_changes = changes_df[changes_df['No Akun'].isin(pinjaman_df['No Akun'])]
                             pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
                             styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
-    
-                                # Display both tables
-                            st.write("Perubahan Persentase:")
-                            st.dataframe(styled_pct_changes)
-    
-                            st.write("Perubahan Nominal (Rp):")
-                            st.dataframe(styled_pinjaman_changes)
 
                             # Komposisi Pinjaman
                             st.markdown('<p class="sub-header">Komposisi Pinjaman</p>', unsafe_allow_html=True)
@@ -388,7 +381,7 @@ Rekomendasi:
                             fig, ax = plt.subplots(figsize=(8, 8))
                             wedges, texts, autotexts = ax.pie(
                                 pinjaman_composition[last_month], 
-                                labels=pinjaman_composition['Persentase (%)'].apply(lambda x: f"{x:.2f}%"), 
+                                labels=pinjaman_composition['Persentase (%)'].apply(lambda x: f"{x:.1f}%"), 
                                 autopct='%1.1f%%', 
                                 startangle=90, 
                                 colors=sns.color_palette("Set3", len(pinjaman_composition))
@@ -411,8 +404,8 @@ Rekomendasi:
                         summary_sheet = workbook.add_worksheet('Ringkasan Analisis')
                         
                         # Format the summary sheet
-                        bold_format = workbook.add_format({'bold': True, 'font_size': 14})
-                        normal_format = workbook.add_format({'font_size': 12})
+                        bold_format = workbook.add_format({'bold': False, 'font_size': 11})
+                        normal_format = workbook.add_format({'font_size': 11})
                         
                         # Write the report
                         summary_sheet.write(0, 0, "LAPORAN ANALISIS KEUANGAN", bold_format)
