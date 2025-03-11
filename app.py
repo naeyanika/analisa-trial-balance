@@ -191,23 +191,36 @@ if uploaded_file is not None:
                     pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
                     styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
 
-                    # New section for loan trend
+                    # Grouped bar chart for loan trends
                     st.markdown('<p class="sub-header">Tren Pinjaman</p>', unsafe_allow_html=True)
                     
                     # Prepare data for grouped bar chart
-                    loan_trend_df = pinjaman_df.melt(id_vars=["No Akun", "Keterangan"], var_name="Bulan, Tahun", value_name="Nominal")
-                    loan_trend_df['Nominal'] = loan_trend_df['Nominal'] / 1000000  # Convert to millions
+                    loan_data = pinjaman_df.set_index('Keterangan')[month_columns].T
+                    loan_data.columns.name = 'Keterangan'
+                    loan_data.index.name = 'Bulan, Tahun'
                     
-                    # Create grouped bar chart
-                    plt.figure(figsize=(14, 8))
-                    sns.barplot(data=loan_trend_df, x="Bulan, Tahun", y="Nominal", hue="Keterangan", palette="Set3")
-                    plt.title("Tren Pinjaman Bulanan")
-                    plt.xlabel("Bulan, Tahun")
-                    plt.ylabel("Nominal (jutaan Rp)")
+                    # Plot grouped bar chart
+                    x = np.arange(len(loan_data.index))
+                    width = 0.25
+                    multiplier = 0
+                    fig, ax = plt.subplots(layout='constrained', figsize=(12, 8))
+                    
+                    for category, values in loan_data.items():
+                        offset = width * multiplier
+                        rects = ax.bar(x + offset, values / 1e8, width, label=category)  # Convert to ratusan juta
+                        ax.bar_label(rects, padding=3)
+                        multiplier += 1
+                    
+                    # Add some text for labels, title and custom x-axis tick labels, etc.
+                    ax.set_ylabel('Nominal (ratusan juta Rp)')
+                    ax.set_title('Tren Pinjaman Bulanan')
+                    ax.set_xticks(x + width, loan_data.index)
+                    ax.legend(loc='upper left', ncols=3)
+                    ax.set_ylim(0, loan_data.max().max() / 1e8 + 1)
+                    
                     plt.xticks(rotation=45)
-                    plt.legend(title="Keterangan", loc="upper right", bbox_to_anchor=(1.2, 1))
-                    plt.tight_layout()
-                    st.pyplot(plt)
+                    st.pyplot(fig)
+                    
                     
                     
                     # Display both tables
