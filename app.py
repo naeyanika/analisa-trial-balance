@@ -138,11 +138,30 @@ if uploaded_file is not None:
                 expense_df = df[expense_filter].copy()
                 
                 # Filter pinjaman rows
-                pinjaman_filter = df['Keterangan'].apply(lambda x: 'pinjaman' in str(x).lower())
+                pinjaman_categories = [
+                    "Pinjaman Umum",
+                    "Pinjaman Micro Bisnis",
+                    "Pinjaman Renovasi Rumah",
+                    "Pinjaman Pendidikan Anak",
+                    "Pinjaman Sanitasi",
+                    "Pinjaman Alat Rumah Tangga"
+                ]
+                
+                pinjaman_filter = df['Keterangan'].apply(lambda x: any(category.lower() in str(x).lower() for category in pinjaman_categories))
                 pinjaman_df = df[pinjaman_filter].copy()
                 
                 # Filter simpanan rows
-                simpanan_filter = df['Keterangan'].apply(lambda x: 'simpanan' in str(x).lower())
+                simpanan_categories = [
+                    "Simpanan Sukarela",
+                    "Simpanan Hari Raya",
+                    "Simpanan Qurban",
+                    "Simpanan Pokok",
+                    "Simpanan Wajib",
+                    "Simpanan Pendidikan & Kesehatan",
+                    "Dana Pensiun Anggota"
+                ]
+                
+                simpanan_filter = df['Keterangan'].apply(lambda x: any(category.lower() in str(x).lower() for category in simpanan_categories))
                 simpanan_df = df[simpanan_filter].copy()
                 
                 # Show expense analysis
@@ -235,7 +254,7 @@ if uploaded_file is not None:
                             if pd.notna(row[col]) and abs(row[col]) > threshold:
                                 period = col.replace("Perubahan ", "").replace(" (%)", "")
                                 significant_changes.append({
-                                    "Kategori": row["Keterangan"],
+                                    "Kategori": row["Kategori"],
                                     "No Akun": row["No Akun"],
                                     "Periode": period,
                                     "Perubahan (%)": row[col]
