@@ -145,7 +145,18 @@ if uploaded_file is not None:
                 simpanan_filter = df['Keterangan'].apply(lambda x: str(x).lower().startswith('simpanan'))
                 simpanan_df = df[simpanan_filter].copy()
 
-            
+                 # Ubah format header perubahan bulan
+                for i in range(1, len(month_columns)):
+                    current_month = month_columns[i]
+                    previous_month = month_columns[i-1]
+    
+                    # Format untuk persentase
+                    col_name = f"Perubahan {previous_month} ke {current_month} (%)"
+                    changes_df[col_name] = df.apply(lambda row: calculate_change(row, current_month, previous_month), axis=1)
+    
+                    # Format untuk absolute
+                    col_name_abs = f"Perubahan {previous_month} ke {current_month} (Rp)"
+                    absolute_changes_df[col_name_abs] = df[current_month] - df[previous_month]
                 
                 # Show expense analysis
                 if not expense_df.empty:
