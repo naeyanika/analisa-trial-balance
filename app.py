@@ -359,7 +359,7 @@ Rekomendasi:
                             # Apply styling based on percentage changes
                             pct_changes = changes_df[changes_df['No Akun'].isin(pinjaman_df['No Akun'])]
                             pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
-                                styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
+                            styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
     
                                 # Display both tables
                             st.write("Perubahan Persentase:")
