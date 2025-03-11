@@ -384,7 +384,8 @@ Rekomendasi:
                                 labels=pinjaman_composition['Persentase (%)'].apply(lambda x: f"{x:.1f}%"), 
                                 autopct='%1.1f%%', 
                                 startangle=90, 
-                                colors=sns.color_palette("Set3", len(pinjaman_composition))
+                                colors=sns.color_palette("Set3", len(pinjaman_composition)),
+                                labeldistance=1.1
                                 )
     
                             ax.legend(wedges, pinjaman_composition['Keterangan'], title="Keterangan", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
