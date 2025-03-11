@@ -84,8 +84,8 @@ if uploaded_file is not None:
                     current_month = month_columns[i]
                     previous_month = month_columns[i-1]
     
-                    # Format untuk persentase
-                    col_name = f"Perubahan {previous_month} ke {current_month} (%)"
+                    # Format untuk persentase (avoid % character in column names)
+                    col_name = f"Perubahan {previous_month} ke {current_month} (pct)"
                     changes_df[col_name] = df.apply(lambda row: calculate_change(row, current_month, previous_month), axis=1)
     
                     # Format untuk absolut
@@ -235,15 +235,15 @@ if uploaded_file is not None:
                     for idx, row in filtered_df.iterrows():
                         for col in change_cols:
                             if pd.notna(row[col]) and abs(row[col]) > threshold:
-                                period = col.replace("Perubahan ", "").replace(" (%)", "")
+                                period = col.replace("Perubahan ", "").replace(" (pct)", "")
                                 significant_changes.append({
                                     "Keterangan": row["Keterangan"],
                                     "No Akun": row["No Akun"],
                                     "Periode": period,
-                                    "Perubahan (%)": row[col]
+                                    "Perubahan (pct)": row[col]
                                 })
                     
-                    return pd.DataFrame(significant_changes).sort_values("Perubahan (%)", ascending=False)
+                    return pd.DataFrame(significant_changes).sort_values("Perubahan (pct)", ascending=False)
                 
                 # Generate summary of significant changes
                 expense_significant = find_significant_changes(changes_df, expense_filter)
@@ -257,15 +257,15 @@ if uploaded_file is not None:
                     top_expenses = expense_significant.head(2)  # Ambil 2 perubahan biaya teratas
                     for i, expense in enumerate(top_expenses.iterrows()):
                         _, expense_row = expense
-                        summary_report.append(f"{i+1}. Perubahan biaya terbesar terjadi pada kategori '{expense_row['Keterangan']}' pada periode {expense_row['Periode']} dengan perubahan {expense_row['Perubahan (%)']}%.")
+                        summary_report.append(f"{i+1}. Perubahan biaya terbesar terjadi pada kategori '{expense_row['Keterangan']}' pada periode {expense_row['Periode']} dengan perubahan {expense_row['Perubahan (pct)']}%.")
 
                 if not pinjaman_significant.empty:
                     top_pinjaman = pinjaman_significant.iloc[0]
-                    summary_report.append(f"{len(summary_report)+1}. Pinjaman mengalami perubahan signifikan pada kategori '{top_pinjaman['Keterangan']}' pada periode {top_pinjaman['Periode']} dengan perubahan {top_pinjaman['Perubahan (%)']}%.")
+                    summary_report.append(f"{len(summary_report)+1}. Pinjaman mengalami perubahan signifikan pada kategori '{top_pinjaman['Keterangan']}' pada periode {top_pinjaman['Periode']} dengan perubahan {top_pinjaman['Perubahan (pct)']}%.")
 
                 if not simpanan_significant.empty:
                     top_simpanan = simpanan_significant.iloc[0]
-                    summary_report.append(f"{len(summary_report)+1}. Simpanan mengalami perubahan signifikan pada kategori '{top_simpanan['Keterangan']}' pada periode {top_simpanan['Periode']} dengan perubahan {top_simpanan['Perubahan (%)']}%.")
+                    summary_report.append(f"{len(summary_report)+1}. Simpanan mengalami perubahan signifikan pada kategori '{top_simpanan['Keterangan']}' pada periode {top_simpanan['Periode']} dengan perubahan {top_simpanan['Perubahan (pct)']}%.")
 
                 # Tambahkan poin tambahan untuk mencapai 5
                 for i in range(len(summary_report), 4):
@@ -315,39 +315,42 @@ Rekomendasi:
                         # Write original data
                         df.to_excel(writer, sheet_name='Data Asli', index=False)
                         
-                        # Write percentage changes
-                        changes_df.to_excel(writer, sheet_name='Perubahan (%)', index=False)
+                        # Write percentage changes - avoid % in sheet name
+                        changes_df.to_excel(writer, sheet_name='Perubahan Pct', index=False)
                         
                         # Write absolute changes
-                        absolute_changes_df.to_excel(writer, sheet_name='Perubahan (Rp)', index=False)
+                        absolute_changes_df.to_excel(writer, sheet_name='Perubahan Rp', index=False)
                         
                         # Write expense analysis
                         if not expense_df.empty:
                             expense_df.to_excel(writer, sheet_name='Analisis Biaya', index=False)
                             changes_df[changes_df['No Akun'].isin(expense_df['No Akun'])].to_excel(
-                                writer, sheet_name='Perubahan Biaya (%)', index=False
+                                writer, sheet_name='Perubahan Biaya Pct', index=False
                             )
                         
                         # Write pinjaman analysis
                         if not pinjaman_df.empty:
                             pinjaman_df.to_excel(writer, sheet_name='Analisis Pinjaman', index=False)
                             changes_df[changes_df['No Akun'].isin(pinjaman_df['No Akun'])].to_excel(
-                                writer, sheet_name='Perubahan Pinjaman (%)', index=False
+                                writer, sheet_name='Perubahan Pinjaman Pct', index=False
                             )
                         
                         # Write simpanan analysis
                         if not simpanan_df.empty:
                             simpanan_df.to_excel(writer, sheet_name='Analisis Simpanan', index=False)
                             changes_df[changes_df['No Akun'].isin(simpanan_df['No Akun'])].to_excel(
-                                writer, sheet_name='Perubahan Simpanan (%)', index=False
+                                writer, sheet_name='Perubahan Simpanan Pct', index=False
                             )
                         
                         # Write significant changes
-                        pd.concat([
+                        significant_changes = pd.concat([
                             expense_significant, 
                             pinjaman_significant,
                             simpanan_significant
-                        ]).to_excel(writer, sheet_name='Perubahan Signifikan', index=False)
+                        ], ignore_index=True)
+                        
+                        if not significant_changes.empty:
+                            significant_changes.to_excel(writer, sheet_name='Perubahan Signifikan', index=False)
                         
                         # Write summary report
                         workbook = writer.book
