@@ -61,6 +61,23 @@ if uploaded_file is not None:
             if len(month_columns) < 2:
                 st.error("Data harus memiliki minimal 2 bulan untuk melakukan analisis perubahan")
             else:
+                # Convert month columns to datetime and reformat
+                month_columns_formatted = []
+                for col in month_columns:
+                    try:
+                        # Parse the date
+                        date = pd.to_datetime(col, format='%Y-%m-%d %H.%M.%S')
+                        # Reformat the date to mmm-yyyy
+                        formatted_date = date.strftime('%b-%Y')
+                        month_columns_formatted.append(formatted_date)
+                    except ValueError:
+                        # If parsing fails, keep the original column name
+                        month_columns_formatted.append(col)
+                
+                # Rename the columns in the DataFrame
+                df.columns = required_columns + month_columns_formatted
+                month_columns = month_columns_formatted
+                
                 # Convert numeric columns to numeric
                 for col in month_columns:
                     df[col] = pd.to_numeric(df[col], errors='coerce')
@@ -221,15 +238,12 @@ if uploaded_file is not None:
                     plt.xticks(rotation=45)
                     st.pyplot(fig)
                     
-                    
-                    
                     # Display both tables
                     st.write("Perubahan Persentase:")
                     st.dataframe(styled_pct_changes)
                     
                     st.write("Perubahan Nominal (Rp):")
                     st.dataframe(styled_pinjaman_changes)
-                    
                     
                 # Show simpanan analysis
                 if not simpanan_df.empty:
