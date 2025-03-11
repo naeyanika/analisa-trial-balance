@@ -147,7 +147,7 @@ if uploaded_file is not None:
                     "Pinjaman Alat Rumah Tangga"
                 ]
                 
-                pinjaman_filter = df['Keterangan'].apply(lambda x: x.strip().lower() in [category.lower() for category in pinjaman_categories])
+                pinjaman_filter = df['Keterangan'].apply(lambda x: any(category.lower() in str(x).lower() for category in pinjaman_categories))
                 pinjaman_df = df[pinjaman_filter].copy()
                 
                 # Filter simpanan rows
@@ -161,7 +161,7 @@ if uploaded_file is not None:
                     "Dana Pensiun Anggota"
                 ]
                 
-                simpanan_filter = df['Keterangan'].apply(lambda x: x.strip().lower() in [category.lower() for category in simpanan_categories])
+                simpanan_filter = df['Keterangan'].apply(lambda x: any(category.lower() in str(x).lower() for category in simpanan_categories))
                 simpanan_df = df[simpanan_filter].copy()
                 
                 # Show expense analysis
@@ -197,45 +197,6 @@ if uploaded_file is not None:
                     
                     st.write("Perubahan Nominal (Rp):")
                     st.dataframe(styled_pinjaman_changes)
-                    
-                    # Grouped Bar Chart
-                    st.markdown("#### Grouped Bar Chart Perubahan Pinjaman")
-                    pinjaman_values = pinjaman_df[month_columns].values
-                    pinjaman_labels = pinjaman_df['Keterangan'].values
-                    
-                    fig, ax = plt.subplots(figsize=(14, 8))
-                    width = 0.15
-                    x = np.arange(len(month_columns) - 1)
-                    
-                    for i, label in enumerate(pinjaman_labels):
-                        ax.bar(x + i * width, pinjaman_values[i, 1:], width, label=label)
-                    
-                    ax.set_xlabel('Periode')
-                    ax.set_ylabel('Nilai (Rp)')
-                    ax.set_title('Grouped Bar Chart Perubahan Pinjaman')
-                    ax.set_xticks(x + width * (len(pinjaman_labels) - 1) / 2)
-                    ax.set_xticklabels(month_columns[1:])
-                    ax.legend(title='Kategori Pinjaman')
-                    plt.xticks(rotation=45)
-                    st.pyplot(fig)
-                    
-                    # Pie Chart
-                    st.markdown("#### Pie Chart Total Pinjaman Terakhir")
-                    last_month = month_columns[-1]
-                    pinjaman_last_month = pinjaman_df[last_month].values
-                    labels = pinjaman_df['Keterangan'].values
-                    
-                    fig, ax = plt.subplots(figsize=(8, 8))
-                    ax.pie(pinjaman_last_month, labels=labels, autopct='%1.1f%%', startangle=90)
-                    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-                    st.pyplot(fig)
-                    
-                    # Donut Chart
-                    st.markdown("#### Donut Chart Total Pinjaman Terakhir")
-                    fig, ax = plt.subplots(figsize=(8, 8))
-                    ax.pie(pinjaman_last_month, labels=labels, autopct='%1.1f%%', startangle=90, wedgeprops=dict(width=0.3))
-                    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-                    st.pyplot(fig)
                 
                 # Show simpanan analysis
                 if not simpanan_df.empty:
@@ -253,45 +214,6 @@ if uploaded_file is not None:
                     
                     st.write("Perubahan Nominal (Rp):")
                     st.dataframe(styled_simpanan_changes)
-                    
-                    # Grouped Bar Chart
-                    st.markdown("#### Grouped Bar Chart Perubahan Simpanan")
-                    simpanan_values = simpanan_df[month_columns].values
-                    simpanan_labels = simpanan_df['Keterangan'].values
-                    
-                    fig, ax = plt.subplots(figsize=(14, 8))
-                    width = 0.15
-                    x = np.arange(len(month_columns) - 1)
-                    
-                    for i, label in enumerate(simpanan_labels):
-                        ax.bar(x + i * width, simpanan_values[i, 1:], width, label=label)
-                    
-                    ax.set_xlabel('Periode')
-                    ax.set_ylabel('Nilai (Rp)')
-                    ax.set_title('Grouped Bar Chart Perubahan Simpanan')
-                    ax.set_xticks(x + width * (len(simpanan_labels) - 1) / 2)
-                    ax.set_xticklabels(month_columns[1:])
-                    ax.legend(title='Kategori Simpanan')
-                    plt.xticks(rotation=45)
-                    st.pyplot(fig)
-                    
-                    # Pie Chart
-                    st.markdown("#### Pie Chart Total Simpanan Terakhir")
-                    last_month = month_columns[-1]
-                    simpanan_last_month = simpanan_df[last_month].values
-                    labels = simpanan_df['Keterangan'].values
-                    
-                    fig, ax = plt.subplots(figsize=(8, 8))
-                    ax.pie(simpanan_last_month, labels=labels, autopct='%1.1f%%', startangle=90)
-                    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-                    st.pyplot(fig)
-                    
-                    # Donut Chart
-                    st.markdown("#### Donut Chart Total Simpanan Terakhir")
-                    fig, ax = plt.subplots(figsize=(8, 8))
-                    ax.pie(simpanan_last_month, labels=labels, autopct='%1.1f%%', startangle=90, wedgeprops=dict(width=0.3))
-                    ax.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
-                    st.pyplot(fig)
                 
                 # Create visualizations
                 st.markdown('<p class="sub-header">Visualisasi Data</p>', unsafe_allow_html=True)
