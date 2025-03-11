@@ -4,10 +4,6 @@ import numpy as np
 import io
 import matplotlib.pyplot as plt
 import seaborn as sns
-import logging
-
-# Set up logging
-logging.basicConfig(level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Set page configuration
 st.set_page_config(page_title="Financial Data Analysis", layout="wide")
@@ -50,9 +46,6 @@ if uploaded_file is not None:
         # Read the Excel file
         df = pd.read_excel(uploaded_file)
         
-        # Convert all column names to strings to avoid mixed type issues
-        df.columns = df.columns.astype(str)
-
         # Check if the required columns exist
         required_columns = ["No Akun", "Keterangan"]
         if not all(col in df.columns for col in required_columns):
@@ -80,22 +73,23 @@ if uploaded_file is not None:
                         return np.inf if row[current_month] > 0 else 0
                     return (row[current_month] - row[previous_month]) / row[previous_month] * 100
                 
-                # Create DataFrame for changes
+                # Create a dataframe for monthly changes
                 changes_df = df[["No Akun", "Keterangan"]].copy()
-                absolute_changes_df = df[["No Akun", "Keterangan"]].copy()
-
-                # Calculate monthly changes (percentage and absolute values)
+                
+                # Calculate month-to-month changes in percentage
                 for i in range(1, len(month_columns)):
                     current_month = month_columns[i]
                     previous_month = month_columns[i-1]
-    
-                    # Format for percentage
                     col_name = f"Perubahan {previous_month} ke {current_month} (%)"
                     changes_df[col_name] = df.apply(lambda row: calculate_change(row, current_month, previous_month), axis=1)
-    
-                    # Format for absolute
-                    col_name_abs = f"Perubahan {previous_month} ke {current_month} (Rp)"
-                    absolute_changes_df[col_name_abs] = df[current_month] - df[previous_month]
+                
+                # Calculate month-to-month changes in absolute value
+                absolute_changes_df = df[["No Akun", "Keterangan"]].copy()
+                for i in range(1, len(month_columns)):
+                    current_month = month_columns[i]
+                    previous_month = month_columns[i-1]
+                    col_name = f"Perubahan {previous_month} ke {current_month} (Rp)"
+                    absolute_changes_df[col_name] = df[current_month] - df[previous_month]
                 
                 # Function to color code changes
                 def color_significant_changes(val):
@@ -143,13 +137,14 @@ if uploaded_file is not None:
                 expense_filter = df['Keterangan'].apply(lambda x: any(category.lower() in str(x).lower() for category in expense_categories))
                 expense_df = df[expense_filter].copy()
                 
-                # Filter pinjaman and simpanan
-                pinjaman_filter = df['Keterangan'].apply(lambda x: str(x).lower().startswith('pinjaman'))
+                # Filter pinjaman rows
+                pinjaman_filter = df['Keterangan'].apply(lambda x: 'pinjaman' in str(x).lower())
                 pinjaman_df = df[pinjaman_filter].copy()
                 
-                simpanan_filter = df['Keterangan'].apply(lambda x: str(x).lower().startswith('simpanan'))
+                # Filter simpanan rows
+                simpanan_filter = df['Keterangan'].apply(lambda x: 'simpanan' in str(x).lower())
                 simpanan_df = df[simpanan_filter].copy()
-
+                
                 # Show expense analysis
                 if not expense_df.empty:
                     st.markdown("### Analisis Biaya")
@@ -158,7 +153,7 @@ if uploaded_file is not None:
                     # Apply styling based on percentage changes
                     pct_changes = changes_df[changes_df['No Akun'].isin(expense_df['No Akun'])]
                     pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
-                    styled_pct_changes = pct_changes.style.map(color_significant_changes, subset=pct_cols)
+                    styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
                     
                     # Display both tables
                     st.write("Perubahan Persentase:")
@@ -175,7 +170,7 @@ if uploaded_file is not None:
                     # Apply styling based on percentage changes
                     pct_changes = changes_df[changes_df['No Akun'].isin(pinjaman_df['No Akun'])]
                     pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
-                    styled_pct_changes = pct_changes.style.map(color_significant_changes, subset=pct_cols)
+                    styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
                     
                     # Display both tables
                     st.write("Perubahan Persentase:")
@@ -192,8 +187,8 @@ if uploaded_file is not None:
                     # Apply styling based on percentage changes
                     pct_changes = changes_df[changes_df['No Akun'].isin(simpanan_df['No Akun'])]
                     pct_cols = [col for col in pct_changes.columns if "Perubahan" in col]
-                    styled_pct_changes = pct_changes.style.map(color_significant_changes, subset=pct_cols)
-
+                    styled_pct_changes = pct_changes.style.applymap(color_significant_changes, subset=pct_cols)
+                    
                     # Display both tables
                     st.write("Perubahan Persentase:")
                     st.dataframe(styled_pct_changes)
@@ -240,7 +235,7 @@ if uploaded_file is not None:
                             if pd.notna(row[col]) and abs(row[col]) > threshold:
                                 period = col.replace("Perubahan ", "").replace(" (%)", "")
                                 significant_changes.append({
-                                    "Keterangan": row["Keterangan"],
+                                    "Kategori": row["Keterangan"],
                                     "No Akun": row["No Akun"],
                                     "Periode": period,
                                     "Perubahan (%)": row[col]
@@ -252,35 +247,26 @@ if uploaded_file is not None:
                 expense_significant = find_significant_changes(changes_df, expense_filter)
                 pinjaman_significant = find_significant_changes(changes_df, pinjaman_filter)
                 simpanan_significant = find_significant_changes(changes_df, simpanan_filter)
-
+                
                 # Create summary report
                 summary_report = []
-
+                
                 if not expense_significant.empty:
-                    top_expenses = expense_significant.head(2)  # Take top 2 expense changes
-                    for i, expense in enumerate(top_expenses.iterrows()):
-                        _, expense_row = expense
-                        summary_report.append(f"{i+1}. Perubahan biaya terbesar terjadi pada kategori '{expense_row['Keterangan']}' pada periode {expense_row['Periode']} dengan perubahan {expense_row['Perubahan (%)']}%.")
-
+                    top_expense = expense_significant.iloc[0]
+                    summary_report.append(f"1. Perubahan biaya terbesar terjadi pada kategori '{top_expense['Kategori']}' pada periode {top_expense['Periode']} dengan perubahan {top_expense['Perubahan (%)']}%.")
+                
                 if not pinjaman_significant.empty:
                     top_pinjaman = pinjaman_significant.iloc[0]
-                    summary_report.append(f"{len(summary_report)+1}. Pinjaman mengalami perubahan signifikan pada kategori '{top_pinjaman['Keterangan']}' pada periode {top_pinjaman['Periode']} dengan perubahan {top_pinjaman['Perubahan (%)']}%.")
-
+                    summary_report.append(f"2. Pinjaman mengalami perubahan signifikan pada kategori '{top_pinjaman['Kategori']}' pada periode {top_pinjaman['Periode']} dengan perubahan {top_pinjaman['Perubahan (%)']}%.")
+                
                 if not simpanan_significant.empty:
                     top_simpanan = simpanan_significant.iloc[0]
-                    summary_report.append(f"{len(summary_report)+1}. Simpanan mengalami perubahan signifikan pada kategori '{top_simpanan['Keterangan']}' pada periode {top_simpanan['Periode']} dengan perubahan {top_simpanan['Perubahan (%)']}%.")
-
-                # Add additional points to reach 5
-                for i in range(len(summary_report), 4):
-                    summary_report.append(f"{i+1}. Analisis menunjukkan perlunya pemantauan lebih lanjut terhadap kategori yang memiliki fluktuasi signifikan pada periode {month_columns[-2]} ke {month_columns[-1]}.")
-
-                # Add overall trend summary as the fifth point
-                summary_report.append(f"5. Tren keseluruhan menunjukkan perubahan paling signifikan terjadi pada periode {month_columns[-2]} ke {month_columns[-1]}.")
-
+                    summary_report.append(f"3. Simpanan mengalami perubahan signifikan pada kategori '{top_simpanan['Kategori']}' pada periode {top_simpanan['Periode']} dengan perubahan {top_simpanan['Perubahan (%)']}%.")
+                
                 st.markdown("#### Temuan Utama:")
                 for finding in summary_report:
                     st.write(finding)
-
+                
                 # Generate customized analysis report
                 st.markdown('<p class="sub-header">Laporan Analisis Keuangan</p>', unsafe_allow_html=True)
                 
@@ -379,7 +365,6 @@ Rekomendasi:
                     )
                 
     except Exception as e:
-        logging.error(f"Error reading file: {e}")
         st.error(f"Error reading file: {e}")
 else:
     st.info("Silakan upload file Excel untuk memulai analisis")
