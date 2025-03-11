@@ -137,13 +137,26 @@ if uploaded_file is not None:
                 expense_filter = df['Keterangan'].apply(lambda x: any(category.lower() in str(x).lower() for category in expense_categories))
                 expense_df = df[expense_filter].copy()
                 
-                # Filter pinjaman rows
-                pinjaman_filter = df['Keterangan'].apply(lambda x: 'pinjaman' in str(x).lower())
+                # Ubah filter pinjaman dan simpanan untuk hanya mencari kata depan, bukan kata yang mengandung
+                pinjaman_filter = df['Keterangan'].apply(lambda x: str(x).lower().startswith('pinjaman'))
                 pinjaman_df = df[pinjaman_filter].copy()
                 
                 # Filter simpanan rows
-                simpanan_filter = df['Keterangan'].apply(lambda x: 'simpanan' in str(x).lower())
-                simpanan_df = df[simpanan_filter].copy()
+                simpanan_filter = df['Keterangan'].apply(lambda x: str(x).lower().startswith('simpanan'))
+                simpanan_df = df[simpanan_filter].copy())
+
+                # Ubah format header perubahan bulan
+                for i in range(1, len(month_columns)):
+                    current_month = month_columns[i]
+                    previous_month = month_columns[i-1]
+    
+                    # Format untuk persentase
+                    col_name = f"Perubahan {previous_month} ke {current_month} (%)"
+                    changes_df[col_name] = df.apply(lambda row: calculate_change(row, current_month, previous_month), axis=1)
+    
+                    # Format untuk absolute
+                    col_name_abs = f"Perubahan {previous_month} ke {current_month} (Rp)"
+                    absolute_changes_df[col_name_abs] = df[current_month] - df[previous_month]
                 
                 # Show expense analysis
                 if not expense_df.empty:
@@ -247,22 +260,27 @@ if uploaded_file is not None:
                 expense_significant = find_significant_changes(changes_df, expense_filter)
                 pinjaman_significant = find_significant_changes(changes_df, pinjaman_filter)
                 simpanan_significant = find_significant_changes(changes_df, simpanan_filter)
-                
-                # Create summary report
+
+                # Create summary report with 5 points
                 summary_report = []
-                
+
                 if not expense_significant.empty:
-                    top_expense = expense_significant.iloc[0]
-                    summary_report.append(f"1. Perubahan biaya terbesar terjadi pada kategori '{top_expense['Kategori']}' pada periode {top_expense['Periode']} dengan perubahan {top_expense['Perubahan (%)']}%.")
-                
+                    top_expenses = expense_significant.head(2)  # Get top 2 expense changes
+                    for i, expense in enumerate(top_expenses.iterrows()):
+                        _, expense_row = expense
+                        summary_report.append(f"{i+1}. Perubahan biaya terbesar terjadi pada kategori '{expense_row['Kategori']}' pada periode {expense_row['Periode']} dengan perubahan {expense_row['Perubahan (%)']}%.")
+
                 if not pinjaman_significant.empty:
                     top_pinjaman = pinjaman_significant.iloc[0]
-                    summary_report.append(f"2. Pinjaman mengalami perubahan signifikan pada kategori '{top_pinjaman['Kategori']}' pada periode {top_pinjaman['Periode']} dengan perubahan {top_pinjaman['Perubahan (%)']}%.")
-                
+                    summary_report.append(f"3. Pinjaman mengalami perubahan signifikan pada kategori '{top_pinjaman['Kategori']}' pada periode {top_pinjaman['Periode']} dengan perubahan {top_pinjaman['Perubahan (%)']}%.")
+
                 if not simpanan_significant.empty:
                     top_simpanan = simpanan_significant.iloc[0]
-                    summary_report.append(f"3. Simpanan mengalami perubahan signifikan pada kategori '{top_simpanan['Kategori']}' pada periode {top_simpanan['Periode']} dengan perubahan {top_simpanan['Perubahan (%)']}%.")
-                
+                    summary_report.append(f"4. Simpanan mengalami perubahan signifikan pada kategori '{top_simpanan['Kategori']}' pada periode {top_simpanan['Periode']} dengan perubahan {top_simpanan['Perubahan (%)']}%.")
+
+                # Add an overall trend summary as the fifth point
+                summary_report.append(f"5. Tren keseluruhan menunjukkan perubahan paling signifikan terjadi pada periode {month_columns[-2]} ke {month_columns[-1]}.")
+
                 st.markdown("#### Temuan Utama:")
                 for finding in summary_report:
                     st.write(finding)
