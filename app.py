@@ -254,7 +254,7 @@ if uploaded_file is not None:
                             if pd.notna(row[col]) and abs(row[col]) > threshold:
                                 period = col.replace("Perubahan ", "").replace(" (%)", "")
                                 significant_changes.append({
-                                    "Kategori": row["Kategori"],
+                                    "Kategori": row["Keterangan"],
                                     "No Akun": row["No Akun"],
                                     "Periode": period,
                                     "Perubahan (%)": row[col]
