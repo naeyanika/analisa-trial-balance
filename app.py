@@ -376,12 +376,16 @@ Rekomendasi:
                             # Tampilkan tabel komposisi pinjaman
                             st.markdown("#### Komposisi Pinjaman Bulan Terakhir")
                             st.dataframe(pinjaman_composition)
-    
+                            
                             # Buat pie chart
                             fig, ax = plt.subplots(figsize=(8, 8))
+
+                            # Tampilkan semua label di luar pie chart
+                            labels = pinjaman_composition['Persentase (%)'].apply(lambda x: f"{x:.1f}%")
+
                             wedges, texts, autotexts = ax.pie(
                                 pinjaman_composition[last_month], 
-                                labels=pinjaman_composition['Persentase (%)'].apply(lambda x: f"{x:.1f}%"), 
+                                labels=labels, 
                                 autopct='%1.1f%%', 
                                 startangle=90, 
                                 colors=sns.color_palette("Set3", len(pinjaman_composition)),
