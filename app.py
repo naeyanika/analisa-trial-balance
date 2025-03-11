@@ -143,7 +143,7 @@ if uploaded_file is not None:
                 
                 # Filter simpanan rows
                 simpanan_filter = df['Keterangan'].apply(lambda x: str(x).lower().startswith('simpanan'))
-                simpanan_df = df[simpanan_filter].copy())
+                simpanan_df = df[simpanan_filter].copy()
 
                 # Ubah format header perubahan bulan
                 for i in range(1, len(month_columns)):
