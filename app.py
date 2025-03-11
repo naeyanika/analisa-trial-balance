@@ -137,14 +137,13 @@ if uploaded_file is not None:
                 expense_filter = df['Keterangan'].apply(lambda x: any(category.lower() in str(x).lower() for category in expense_categories))
                 expense_df = df[expense_filter].copy()
                 
-                # Filter pinjaman rows (harus diawali dengan "Pinjaman")
-                pinjaman_filter = df['Keterangan'].astype(str).str.startswith('Pinjaman')
+                # Filter pinjaman rows
+                pinjaman_filter = df['Keterangan'].apply(lambda x: 'pinjaman' in str(x).lower())
                 pinjaman_df = df[pinjaman_filter].copy()
-
-                # Filter simpanan rows (harus diawali dengan "Simpanan")
-                simpanan_filter = df['Keterangan'].astype(str).str.startswith('Simpanan')
+                
+                # Filter simpanan rows
+                simpanan_filter = df['Keterangan'].apply(lambda x: 'simpanan' in str(x).lower())
                 simpanan_df = df[simpanan_filter].copy()
-
                 
                 # Show expense analysis
                 if not expense_df.empty:
