@@ -5,13 +5,6 @@ import io
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-def calculate_change(row, current_month, previous_month):
-    if pd.isna(row[previous_month]) or pd.isna(row[current_month]):
-        return np.nan
-    if row[previous_month] == 0:
-        return 1000 if row[current_month] > 0 else 0  # Batas maksimum 1000%
-    return (row[current_month] - row[previous_month]) / row[previous_month] * 100
-
 
 # Set page configuration
 st.set_page_config(page_title="Financial Data Analysis", layout="wide")
